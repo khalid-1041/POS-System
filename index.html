@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KF POS Pro - Firebase Live Admin</title>
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{margin:0;background:#F3F4F6}
+.header{background:#111827;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}
+.header b{font-size:18px}.header span{font-size:12px;opacity:.7}
+.card{background:#fff;margin:14px;border-radius:16px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.btn{border:none;padding:13px;border-radius:12px;width:100%;font-weight:800;font-size:15px;cursor:pointer;margin-top:8px}
+.btn-green{background:#0B6E3E;color:#fff}.btn-dark{background:#111827;color:#fff}.btn-orange{background:#F59E0B;color:#fff}.btn-light{background:#E5E7EB;color:#111}
+input,select{width:100%;padding:12px;border:1.5px solid #E5E7EB;border-radius:12px;margin:6px 0;font-size:14px;outline:none}
+.small{border:1px solid #E5E7EB;background:#fff;padding:6px 9px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;margin:2px}
+.tabs{display:flex;gap:8px;padding:0 14px;overflow:auto}
+.tab{border:1px solid #E5E7EB;background:#fff;padding:10px 14px;border-radius:999px;font-weight:700;cursor:pointer;white-space:nowrap}
+.tab.active{background:#111827;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:600px){.grid{grid-template-columns:repeat(3,1fr)}}
+.prod{border:1px solid #EDEFF2;border-radius:16px;padding:12px;cursor:pointer;background:#fff}
+.prod b{display:block;margin:6px 0 2px}.prod .price{color:#0B6E3E;font-weight:800}
+.stat{background:#fff;border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.05);border-top:4px solid #0B6E3E}
+.stat b{font-size:22px;display:block}.stat small{color:#6B7280}
+.table{width:100%;border-collapse:collapse;font-size:14px}.table th{text-align:left;padding:10px;background:#F9FAFB}.table td{padding:10px;border-bottom:1px solid #F3F4F6}
+.pill{padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700}.pill-green{background:#D1FAE5;color:#065F46}.pill-red{background:#FEE2E2;color:#991B1B}.pill-orange{background:#FEF3C7;color:#92400E}
+.hidden{display:none!important}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;padding:16px;overflow:auto}.modalBox{background:#fff;border-radius:18px;padding:20px;max-width:480px;margin:40px auto}
+.loginWrap{max-width:420px;margin:40px auto;padding:0 14px}
+.logoBig{text-align:center}.logoBig div{width:70px;height:70px;background:#0B6E3E;color:#fff;font-size:36px;display:grid;place-items:center;border-radius:20px;margin:auto}
+.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #F3F4F6}
+.liveDot{width:10px;height:10px;background:#22C55E;border-radius:50%;display:inline-block;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.3}}
+</style>
+</head>
+<body>
+
+<div class="header"><div><b>🏪 KF POS Pro</b><br><span id="headerShop">Firebase Live • Khalid Farooq</span></div><div><span id="connStatus" class="pill pill-orange">● Connecting...</span> <button class="small" style="color:#fff;background:#374151;border:none" onclick="logout()">Logout</button></div></div>
+
+<div id="screen-auth" class="loginWrap">
+<div class="logoBig"><div>🏪</div><h2>KF POS Pro</h2><p style="color:#6B7280">Live Admin System • Firebase</p><p><span class="liveDot"></span> <b style="color:#0B6E3E">LIVE SERVER CONNECTED</b></p></div>
+<div class="card">
+<h3 id="authTitle">🔐 Login کریں</h3>
+<div id="registerFields" class="hidden">
+<input id="regShop" placeholder="دکان کا نام">
+<input id="regOwner" placeholder="مالک کا نام">
+<input id="regPhone" placeholder="فون / واٹس ایپ - 0300xxxxxxx">
+<input id="regCity" placeholder="شہر">
+<select id="regPlan"><option value="Monthly - 1500 PKR">Monthly - 1500 PKR</option><option value="Yearly - 12000 PKR">Yearly - 12000 PKR</option><option value="Lifetime - 15000 PKR">Lifetime - 15000 PKR</option></select>
+</div>
+<input id="authPhone" placeholder="فون نمبر">
+<input id="authPass" type="password" placeholder="پاسورڈ">
+<button class="btn btn-green" onclick="doLogin()">Login • لاگ ان</button>
+<button class="btn btn-light" onclick="toggleAuth()" id="toggleBtn">نیا اکاؤنٹ بنائیں؟ Register کریں</button>
+<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:12px;margin-top:12px;font-size:13px">
+<b>👑 Admin Login:</b><br>Phone: <b>03027911041</b><br>Password: <b>admin123</b>
+</div>
+<p id="authMsg" style="color:#EF4444;font-size:13px"></p>
+</div>
+</div>
+
+<div id="screen-user" class="hidden">
+<div style="padding:0 14px;display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+<div class="stat" style="flex:1;min-width:140px"><small>آج کی سیل</small><b id="todaySale">0</b></div>
+<div class="stat" style="flex:1;min-width:140px;border-color:#F59E0B"><small>منافع</small><b id="todayProfit">0</b></div>
+<div class="stat" style="flex:1;min-width:140px;border-color:#EF4444"><small>ادھار</small><b id="totalUdhaar">0</b></div>
+</div>
+<div class="tabs" style="margin-top:14px">
+<button class="tab active" onclick="userTab('pos',this)">🛒 POS</button>
+<button class="tab" onclick="userTab('stock',this)">📦 اسٹاک</button>
+<button class="tab" onclick="userTab('cust',this)">👥 کھاتہ</button>
+<button class="tab" onclick="userTab('sales',this)">🧾 سیل</button>
+</div>
+<div id="user-pos" class="card"><h3>🛒 سامان منتخب کریں</h3><input id="searchProd" placeholder="تلاش کریں..." oninput="renderUser()"><div class="grid" id="productGrid" style="margin-top:10px"></div>
+<h3 style="margin-top:16px">🧾 بل • Cart <span id="cartCount">0</span></h3><div id="cartList"></div><div class="row"><span>Total</span><b id="grandTotal">0 PKR</b></div>
+<select id="payType"><option value="Cash">Cash</option><option value="JazzCash">JazzCash</option><option value="Udhaar">Udhaar</option></select>
+<select id="saleCustomer"><option value="">Cash Customer</option></select>
+<button class="btn btn-green" onclick="checkout()">✅ چیک آؤٹ</button><button class="btn btn-light" onclick="cart=[];renderUser()">کارٹ صاف کریں</button></div>
+<div id="user-stock" class="card hidden"><h3>📦 اسٹاک</h3><button class="btn btn-green" onclick="openModal('stockModal')">+ نیا سامان</button><div id="stockList"></div></div>
+<div id="user-cust" class="card hidden"><h3>👥 کھاتہ</h3><button class="btn btn-orange" onclick="openModal('custModal')">+ نیا کسٹمر</button><div id="custList"></div></div>
+<div id="user-sales" class="card hidden"><h3>🧾 سیل ہسٹری</h3><div id="salesList"></div></div>
+</div>
+
+<div id="screen-admin" class="hidden">
+<div style="padding:14px;display:flex;gap:10px;flex-wrap:wrap">
+<div class="stat" style="flex:1;min-width:140px"><small>کل یوزرز (Live)</small><b id="adminTotal">0</b></div>
+<div class="stat" style="flex:1;min-width:140px;border-color:#F59E0B"><small>Active</small><b id="adminActive">0</b></div>
+<div class="stat" style="flex:1;min-width:140px;border-color:#EF4444"><small>Blocked</small><b id="adminBlocked">0</b></div>
+<div class="stat" style="flex:1;min-width:140px;border-color:#2563EB"><small>کل آمدن</small><b id="adminRevenue">0 PKR</b></div>
+</div>
+<div class="card"><h3>👑 Live کسٹمرز • کوئی نیا Register کرے گا تو یہاں خود آ جائے گا</h3>
+<input id="adminSearch" placeholder="تلاش کریں - نام، فون، شہر..." oninput="renderAdmin()">
+<div style="overflow:auto"><table class="table"><thead><tr><th>دکان / مالک</th><th>فون / شہر</th><th>پلان / تاریخ</th><th>Status</th><th>Action</th></tr></thead><tbody id="adminTable"></tbody></table></div>
+<button class="btn btn-dark" onclick="exportUsers()">📥 سارا ریکارڈ واٹس ایپ پر بھیجیں</button>
+</div>
+<div class="card"><h3>📊 Live Activity</h3><div id="liveActivity"></div></div>
+</div>
+
+<div id="stockModal" class="modal"><div class="modalBox"><h3>+ نیا سامان</h3><input id="sName" placeholder="نام"><input id="sBuy" type="number" placeholder="خرید قیمت"><input id="sSell" type="number" placeholder="فروخت قیمت"><input id="sQty" type="number" placeholder="مقدار"><button class="btn btn-green" onclick="addStock()">Save</button><button class="btn btn-light" onclick="closeModal('stockModal')">Cancel</button></div></div>
+<div id="custModal" class="modal"><div class="modalBox"><h3>+ نیا کسٹمر</h3><input id="cName" placeholder="نام"><input id="cPhone" placeholder="فون"><input id="cAddress" placeholder="ایڈریس"><button class="btn btn-green" onclick="addCustomer()">Save</button><button class="btn btn-light" onclick="closeModal('custModal')">Cancel</button></div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ======== ✅ آپ کی Firebase Config - لگی ہوئی ہے ========
+const firebaseConfig = {
+  apiKey: "AIzaSyBGH2pGj3HleNTmSvtmR8CbEPtpamgkNdc",
+  authDomain: "kf-pos-pro.firebaseapp.com",
+  projectId: "kf-pos-pro",
+  storageBucket: "kf-pos-pro.firebasestorage.app",
+  messagingSenderId: "660635577810",
+  appId: "1:660635577810:web:ed13c1c8ff48f38a5e6c0b"
+};
+// ==============================================
+
+let db = null;
+let allUsers = [];
+try{
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  document.getElementById('connStatus').innerText = "● LIVE • Firebase Connected";
+  document.getElementById('connStatus').className = "pill pill-green";
+  onSnapshot(query(collection(db, "kf_users"), orderBy("createdAt","desc")), (snap)=>{
+    allUsers = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    if(window.currentUser?.isAdmin) renderAdmin();
+    let act = document.getElementById('liveActivity');
+    if(act && window.currentUser?.isAdmin){
+      act.innerHTML = allUsers.slice(0,5).map(u=>'<div class="row"><span>🟢 <b>'+u.shop+'</b> - '+u.owner+' • '+u.city+'</span><small>'+(u.date||'')+'</small></div>').join('') || '<p>ابھی کوئی یوزر نہیں</p>';
+    }
+  });
+} catch(e){
+  document.getElementById('connStatus').innerText = "● Demo Mode - Config Error";
+  console.log("Firebase error", e);
+}
+
+window.db = db;
+let localUsers = JSON.parse(localStorage.getItem('kf_admin_users')) || [];
+let stock = JSON.parse(localStorage.getItem('kf_user_stock')) || [{name:"چینی",buy:170,sell:190,qty:20},{name:"دال",buy:280,sell:320,qty:15},{name:"سرف",buy:180,sell:220,qty:10}];
+let customers = JSON.parse(localStorage.getItem('kf_user_cust')) || [{name:"احمد بھائی",phone:"0300-111",address:"مین بازار",udhaar:0}];
+let sales = JSON.parse(localStorage.getItem('kf_user_sales')) || [];
+window.cart = [];
+let isRegister = false;
+window.currentUser = JSON.parse(localStorage.getItem('kf_current_user')) || null;
+
+window.saveLocal = function(){
+  localStorage.setItem('kf_user_stock',JSON.stringify(stock));
+  localStorage.setItem('kf_user_cust',JSON.stringify(customers));
+  localStorage.setItem('kf_user_sales',JSON.stringify(sales));
+  if(window.currentUser) localStorage.setItem('kf_current_user',JSON.stringify(window.currentUser));
+}
+window.openModal = function(id){document.getElementById(id).style.display='block'}
+window.closeModal = function(id){document.getElementById(id).style.display='none'}
+window.toggleAuth = function(){
+  isRegister=!isRegister;
+  document.getElementById('registerFields').classList.toggle('hidden',!isRegister);
+  document.getElementById('authTitle').innerText=isRegister?'📝 Register کریں':'🔐 Login کریں';
+  document.getElementById('toggleBtn').innerText=isRegister?'پہلے سے اکاؤنٹ ہے؟ Login کریں':'نیا اکاؤنٹ بنائیں؟ Register کریں';
+}
+window.doLogin = async function(){
+  let phone=document.getElementById('authPhone').value.trim();
+  let pass=document.getElementById('authPass').value.trim();
+  let msg=document.getElementById('authMsg');
+  if(phone==="03027911041" && pass==="admin123"){ window.currentUser={shop:"ADMIN", owner:"خالد فاروق", phone:phone, isAdmin:true}; window.saveLocal(); showScreen('admin'); return; }
+  if(isRegister){
+    let shop=document.getElementById('regShop').value.trim(); let owner=document.getElementById('regOwner').value.trim(); let city=document.getElementById('regCity').value.trim();
+    if(!shop||!owner||!phone||!pass){msg.innerText='ساری معلومات لکھیں';return;}
+    let newKey="KF-"+(1000+Math.floor(Math.random()*9000));
+    let nu={shop:shop, owner:owner, phone:phone, city:city, plan:document.getElementById('regPlan').value, pass:pass, status:"Active", date:new Date().toLocaleDateString(), key:newKey, createdAt: serverTimestamp()};
+    try{
+      if(db){ await addDoc(collection(db,"kf_users"), nu); }
+      else { localUsers.push(nu); localStorage.setItem('kf_admin_users',JSON.stringify(localUsers)); }
+    } catch(e){ msg.innerText='Firebase Error: '+e.message; return; }
+    window.currentUser=nu; window.saveLocal();
+    window.open('https://wa.me/923027911041?text='+encodeURIComponent('🆕 نیا کسٹمر LIVE - KF POS\nدکان: '+shop+'\nمالک: '+owner+'\nفون: '+phone+'\nشہر: '+city+'\nپلان: '+nu.plan+'\nKey: '+newKey));
+    alert('مبارک ہو! اکاؤنٹ بن گیا۔\nLicense Key: '+newKey+'\nAdmin Panel میں آپ کا نام Live آ گیا ہے۔');
+    showScreen('user'); return;
+  }
+  let found = null;
+  if(db && allUsers.length>0){ found = allUsers.find(u=>u.phone===phone && (u.pass===pass || u.key===pass)); }
+  if(!found) found = localUsers.find(u=>u.phone===phone && (u.pass===pass || u.key===pass));
+  if(!found){ msg.innerText='فون یا پاسورڈ غلط ہے۔ Register کریں یا Admin سے Key لیں۔'; return; }
+  if(found.status==="Blocked"){ msg.innerText='آپ کا اکاؤنٹ Block ہے۔ Admin: 03027911041'; return; }
+  window.currentUser=found; window.saveLocal(); showScreen('user');
+}
+window.logout = function(){ window.currentUser=null; localStorage.removeItem('kf_current_user'); showScreen('auth'); }
+window.showScreen = function(which){
+  document.getElementById('screen-auth').classList.toggle('hidden',which!=='auth');
+  document.getElementById('screen-user').classList.toggle('hidden',which!=='user');
+  document.getElementById('screen-admin').classList.toggle('hidden',which!=='admin');
+  if(which==='user') document.getElementById('headerShop').innerText=window.currentUser.shop+' • '+window.currentUser.owner;
+  if(which==='admin') document.getElementById('headerShop').innerText='Admin Panel • خالد فاروق - Live';
+  if(which==='user') renderUser();
+  if(which==='admin') renderAdmin();
+}
+window.userTab = function(name,btn){
+  document.querySelectorAll('#screen-user .tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active');
+  ['pos','stock','cust','sales'].forEach(t=>document.getElementById('user-'+t).classList.toggle('hidden',t!==name));
+  renderUser();
+}
+window.addToCart = function(i){ let p=stock[i]; if(p.qty<=0){alert('اسٹاک ختم');return;} let f=window.cart.find(c=>c.idx===i); if(f){if(f.qty>=p.qty){alert('صرف '+p.qty+' ہے');return;} f.qty++;} else window.cart.push({idx:i,qty:1}); renderUser(); }
+window.checkout = async function(){
+  if(window.cart.length===0){alert('کارٹ خالی ہے');return;}
+  let total=window.cart.reduce((a,c)=>a+stock[c.idx].sell*c.qty,0);
+  let profit=window.cart.reduce((a,c)=>a+(stock[c.idx].sell-stock[c.idx].buy)*c.qty,0);
+  let type=document.getElementById('payType').value; let ci=document.getElementById('saleCustomer').value;
+  if(type==='Udhaar' && ci===''){alert('ادھار کے لیے کسٹمر منتخب کریں');return;}
+  window.cart.forEach(c=>stock[c.idx].qty-=c.qty);
+  if(type==='Udhaar') customers[ci].udhaar+=total;
+  let saleObj={total:total,profit:profit,type:type,customer:ci!==''?customers[ci].name:'Cash',date:new Date().toLocaleString(),items:window.cart.map(c=>stock[c.idx].name+' x '+c.qty).join(', '), shop:window.currentUser?.shop||'', phone:window.currentUser?.phone||'', createdAt: serverTimestamp()};
+  sales.unshift(saleObj);
+  try{ if(db) await addDoc(collection(db,"kf_sales"), saleObj); } catch(e){ console.log(e); }
+  window.cart=[]; window.saveLocal(); renderUser(); alert('بل بن گیا! Total: '+total+' PKR');
+}
+window.addStock = function(){ let n=document.getElementById('sName').value.trim(); if(!n){alert('نام لکھیں');return;} stock.push({name:n,buy:parseInt(document.getElementById('sBuy').value)||0,sell:parseInt(document.getElementById('sSell').value)||0,qty:parseInt(document.getElementById('sQty').value)||0}); window.saveLocal(); closeModal('stockModal'); renderUser(); }
+window.addCustomer = function(){ let n=document.getElementById('cName').value.trim(); if(!n){alert('نام لکھیں');return;} customers.push({name:n,phone:document.getElementById('cPhone').value,address:document.getElementById('cAddress').value,udhaar:0}); window.saveLocal(); closeModal('custModal'); renderUser(); }
+window.payUdhaar = function(i){ let amt=parseInt(prompt(customers[i].name+' نے کتنے دیے؟ ادھار: '+customers[i].udhaar))||0; if(amt>0){customers[i].udhaar=Math.max(0,customers[i].udhaar-amt); window.saveLocal(); renderUser();} }
+window.renderUser = function(){
+  let tSale=sales.reduce((a,s)=>a+s.total,0); let tProfit=sales.reduce((a,s)=>a+s.profit,0); let tUdhaar=customers.reduce((a,c)=>a+c.udhaar,0);
+  document.getElementById('todaySale').innerText=tSale.toLocaleString()+' PKR'; document.getElementById('todayProfit').innerText=tProfit.toLocaleString()+' PKR'; document.getElementById('totalUdhaar').innerText=tUdhaar.toLocaleString()+' PKR';
+  let q=(document.getElementById('searchProd')?.value||'').toLowerCase();
+  document.getElementById('productGrid').innerHTML=stock.filter(p=>p.name.toLowerCase().includes(q)).map(p=>{let idx=stock.indexOf(p); return '<div class="prod" onclick="addToCart('+idx+')"><b>'+p.name+'</b><div class="price">'+p.sell+' PKR</div><small>اسٹاک: '+p.qty+'</small></div>'}).join('');
+  let sc=document.getElementById('saleCustomer'); sc.innerHTML='<option value="">Cash Customer</option>'; customers.forEach((c,i)=>{let o=document.createElement('option'); o.value=i; o.text=c.name+' - ادھار: '+c.udhaar; sc.appendChild(o);});
+  let total=window.cart.reduce((a,c)=>a+stock[c.idx].sell*c.qty,0);
+  document.getElementById('cartCount').innerText=window.cart.length;
+  document.getElementById('cartList').innerHTML=window.cart.length?window.cart.map((c)=>'<div class="row"><span>'+stock[c.idx].name+' x '+c.qty+'</span><b>'+(stock[c.idx].sell*c.qty)+'</b></div>').join(''):'<p style="color:#6B7280">کارٹ خالی ہے</p>';
+  document.getElementById('grandTotal').innerText=total.toLocaleString()+' PKR';
+  document.getElementById('stockList').innerHTML=stock.map((p,i)=>'<div class="row"><span><b>'+p.name+'</b> • خرید '+p.buy+' • بیچنا '+p.sell+' • اسٹاک '+p.qty+'</span><button class="small" onclick="stock.splice('+i+',1);saveLocal();renderUser()">🗑</button></div>').join('');
+  document.getElementById('custList').innerHTML=customers.map((c,i)=>'<div class="row"><span><b>'+c.name+'</b> • '+c.phone+'<br>ادھار: <b style="color:red">'+c.udhaar+' PKR</b></span><span><button class="small" onclick="payUdhaar('+i+')">💰 پیسے ملے</button></span></div>').join('');
+  document.getElementById('salesList').innerHTML=sales.length?sales.map(s=>'<div class="row"><span>'+s.items+'<br><small>'+s.date+' • '+s.customer+' • '+s.type+'</small></span><b>'+s.total+' PKR</b></div>').join(''):'<p>ابھی کوئی سیل نہیں</p>';
+}
+
+window.renderAdmin = function(){
+  let list = allUsers.length>0 ? allUsers : localUsers;
+  let q=(document.getElementById('adminSearch')?.value||'').toLowerCase();
+  let filtered=list.filter(u=>(u.shop+u.owner+u.phone+u.city).toLowerCase().includes(q));
+  document.getElementById('adminTotal').innerText=list.length;
+  document.getElementById('adminActive').innerText=list.filter(u=>u.status==='Active').length;
+  document.getElementById('adminBlocked').innerText=list.filter(u=>u.status==='Blocked').length;
+  let rev=list.reduce((a,u)=>a+(u.plan?.includes('15000')?15000:u.plan?.includes('12000')?12000:1500),0);
+  document.getElementById('adminRevenue').innerText=rev.toLocaleString()+' PKR';
+  document.getElementById('adminTable').innerHTML=filtered.map((u)=>'<tr><td><b>'+u.shop+'</b><br><small>'+u.owner+'</small></td><td>'+u.phone+'<br><small>'+u.city+'</small></td><td><small>'+u.plan+'</small><br><small>'+(u.date||'')+'</small><br><b>Key: '+u.key+'</b></td><td><span class="pill '+(u.status==='Active'?'pill-green':'pill-red')+'">'+u.status+'</span></td><td><button class="small" onclick="toggleBlock(\''+u.id+'\',\''+u.status+'\')">'+(u.status==='Active'?'🚫 Block':'✅ Unblock')+'</button><button class="small" onclick="window.open(\'https://wa.me/92'+String(u.phone).replace(/[^0-9]/g,'').slice(-10)+'?text=\'+encodeURIComponent(\'السلام علیکم '+u.owner+', آپ کی KF POS Pro کی فیس باقی ہے۔ - خالد فاروق\'))">WhatsApp</button><button class="small" style="color:red" onclick="deleteUser(\''+u.id+'\')">🗑</button></td></tr>').join('') || '<tr><td colspan="5">ابھی کوئی یوزر نہیں۔ کوئی Register کرے گا تو یہاں Live آ جائے گا۔</td></tr>';
+}
+window.toggleBlock = async function(id, status){
+  let newStatus = status==='Active'?'Blocked':'Active';
+  try{ if(db && id) await updateDoc(doc(db,"kf_users",id),{status:newStatus}); } catch(e){ alert(e.message); }
+}
+window.deleteUser = async function(id){
+  if(!confirm('Delete کریں؟')) return;
+  try{ if(db && id) await deleteDoc(doc(db,"kf_users",id)); } catch(e){ alert(e.message); }
+}
+window.exportUsers = function(){
+  let list = allUsers.length>0 ? allUsers : localUsers;
+  let txt='KF POS Pro - تمام کسٹمرز (Live)\n\n'+list.map((u,i)=>(i+1)+'. '+u.shop+' - '+u.owner+' - '+u.phone+' - '+u.city+' - '+u.plan+' - '+u.status+' - Key: '+u.key).join('\n');
+  window.open('https://wa.me/?text='+encodeURIComponent(txt));
+}
+if(window.currentUser){ if(window.currentUser.isAdmin) showScreen('admin'); else showScreen('user'); }
+</script>
+</body>
+</html>
