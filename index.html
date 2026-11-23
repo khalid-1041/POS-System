@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KF POS Pro - Premium Offline-First</title>
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}body{margin:0;background:#F3F4F6;color:#111}
+.header{background:#111827;color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20;flex-wrap:wrap;gap:8px}
+.header b{font-size:18px}.header span{font-size:12px;opacity:.8}
+.card{background:#fff;margin:12px;border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.btn{border:none;padding:12px;border-radius:12px;width:100%;font-weight:800;font-size:14px;cursor:pointer;margin-top:7px}
+.btn-green{background:#0B6E3E;color:#fff}.btn-dark{background:#111827;color:#fff}.btn-orange{background:#F59E0B;color:#fff}.btn-light{background:#E5E7EB;color:#111}.btn-red{background:#EF4444;color:#fff}.btn-blue{background:#2563EB;color:#fff}
+input,select,textarea{width:100%;padding:11px;border:1.5px solid #E5E7EB;border-radius:12px;margin:5px 0;font-size:14px;outline:none}
+.small{border:1px solid #E5E7EB;background:#fff;padding:6px 9px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;margin:2px}
+.tabs{display:flex;gap:7px;padding:0 12px;overflow:auto}
+.tab{border:1px solid #E5E7EB;background:#fff;padding:9px 13px;border-radius:999px;font-weight:700;cursor:pointer;white-space:nowrap;font-size:13px}
+.tab.active{background:#111827;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(3,1fr)}.layout{display:grid;grid-template-columns:1.2fr .8fr;align-items:start}}
+.prod{border:1px solid #EDEFF2;border-radius:14px;padding:11px;cursor:pointer;background:#fff}
+.prod b{display:block;margin:4px 0 2px}.prod .price{color:#0B6E3E;font-weight:800}
+.stat{background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.05);border-top:4px solid #0B6E3E;flex:1;min-width:130px}
+.stat b{font-size:19px;display:block}.stat small{color:#6B7280}
+.table{width:100%;border-collapse:collapse;font-size:13px}.table th{text-align:left;padding:9px;background:#F9FAFB}.table td{padding:9px;border-bottom:1px solid #F3F4F6;vertical-align:top}
+.pill{padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700}.pill-green{background:#D1FAE5;color:#065F46}.pill-red{background:#FEE2E2;color:#991B1B}.pill-orange{background:#FEF3C7;color:#92400E}.pill-blue{background:#DBEAFE;color:#1E40AF}
+.hidden{display:none!important}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;padding:14px;overflow:auto}.modalBox{background:#fff;border-radius:18px;padding:18px;max-width:520px;margin:30px auto}
+.loginWrap{max-width:430px;margin:30px auto;padding:0 12px}
+.logoBig{text-align:center}.logoBig div{width:70px;height:70px;background:#0B6E3E;color:#fff;font-size:36px;display:grid;place-items:center;border-radius:20px;margin:auto}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #F3F4F6;gap:8px}
+.qtyBox{display:flex;align-items:center;gap:6px}
+.qtyBtn{width:32px;height:32px;border-radius:50%;border:1.5px solid #E5E7EB;background:#fff;font-size:18px;font-weight:800;cursor:pointer;display:grid;place-items:center}
+.qtyBtn:active{background:#0B6E3E;color:#fff}
+.qtyInput{width:55px!important;text-align:center;padding:8px 4px!important;margin:0!important;font-weight:800;font-size:15px;border:1.5px solid #0B6E3E!important;border-radius:10px}
+.cartItem{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F3F4F6;gap:8px}
+.liveDot{width:9px;height:9px;background:#22C55E;border-radius:50%;display:inline-block;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.3}}
+.flex{display:flex;gap:10px;flex-wrap:wrap}
+@media print{body *{visibility:hidden}.printArea,.printArea *{visibility:visible}.printArea{position:absolute;left:0;top:0;width:100%}}
+</style>
+</head>
+<body>
+
+<div class="header"><div><b id="shopTitle">🏪 KF POS Pro</b><br><span id="headerShop">Firebase Live • Khalid Farooq</span><br><span id="syncStatus">● Online • Synced</span> <span id="shiftBadge"></span></div><div><span id="connStatus" class="pill pill-orange">● Connecting...</span> <button class="small" style="color:#fff;background:#374151;border:none" onclick="logout()">Logout</button></div></div>
+
+<!-- AUTH -->
+<div id="screen-auth" class="loginWrap">
+<div class="logoBig"><div>🏪</div><h2 id="loginShopName">KF POS Pro</h2><p style="color:#6B7280">Premium Offline-First POS • Firebase Live Admin</p><p><span class="liveDot"></span> <b style="color:#0B6E3E">OFFLINE-FIRST + LIVE SYNC</b></p></div>
+<div class="card">
+<h3 id="authTitle">🔐 Login کریں</h3>
+<div id="registerFields" class="hidden">
+<input id="regShop" placeholder="دکان کا نام"><input id="regOwner" placeholder="مالک کا نام"><input id="regPhone" placeholder="فون / واٹس ایپ - 0300xxxxxxx"><input id="regCity" placeholder="شہر">
+<select id="regPlan"><option value="Monthly - 1500 PKR">Monthly - 1500 PKR</option><option value="Yearly - 12000 PKR">Yearly - 12000 PKR</option><option value="Lifetime - 15000 PKR">Lifetime - 15000 PKR</option></select>
+<select id="regRole"><option value="Owner">Owner / مالک</option><option value="Manager">Manager</option><option value="Cashier">Cashier</option></select>
+</div>
+<input id="authPhone" placeholder="فون نمبر"><input id="authPass" type="password" placeholder="پاسورڈ / License Key">
+<button class="btn btn-green" onclick="doLogin()">Login • لاگ ان</button>
+<button class="btn btn-light" onclick="toggleAuth()" id="toggleBtn">نیا اکاؤنٹ بنائیں؟ Register کریں</button>
+<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:12px;margin-top:12px;font-size:13px"><b>👑 Admin Login:</b><br>Phone: <b>03027911041</b><br>Password: <b>admin123</b><br><small>پہلی دفعہ Setup میں اپنا پاسورڈ ضرور بدلیں</small></div>
+<p id="authMsg" style="color:#EF4444;font-size:13px"></p>
+</div>
+<div class="card"><h3>📋 اس Version میں کیا ہے؟</h3><p style="font-size:13px;line-height:1.8">✅ Offline Sale • ✅ Stock Ledger • ✅ Purchase • ✅ Return • ✅ Shift • ✅ Expense • ✅ Reports • ✅ Backup • ✅ Audit Log • ✅ Discount/Tax/Split Payment • ✅ Hold Cart • ✅ Barcode Search</p></div>
+</div>
+
+<!-- USER -->
+<div id="screen-user" class="hidden">
+<div class="flex" style="padding:12px">
+<div class="stat"><small>آج کی سیل</small><b id="todaySale">0</b></div>
+<div class="stat" style="border-color:#F59E0B"><small>منافع (اندازہ)</small><b id="todayProfit">0</b></div>
+<div class="stat" style="border-color:#EF4444"><small>ادھار</small><b id="totalUdhaar">0</b></div>
+<div class="stat" style="border-color:#2563EB"><small>کیش دراز</small><b id="cashDrawer">0</b></div>
+</div>
+<div class="tabs">
+<button class="tab active" onclick="userTab('pos',this)">🛒 POS</button>
+<button class="tab" onclick="userTab('products',this)">📦 پراڈکٹ</button>
+<button class="tab" onclick="userTab('stock',this)">📊 اسٹاک / Ledger</button>
+<button class="tab" onclick="userTab('purchase',this)">🚚 خریداری</button>
+<button class="tab" onclick="userTab('cust',this)">👥 کھاتہ</button>
+<button class="tab" onclick="userTab('returns',this)">↩️ واپسی</button>
+<button class="tab" onclick="userTab('shift',this)">🕒 شفٹ</button>
+<button class="tab" onclick="userTab('expense',this)">💸 خرچہ</button>
+<button class="tab" onclick="userTab('sales',this)">🧾 سیل</button>
+<button class="tab" onclick="userTab('reports',this)">📈 رپورٹس</button>
+<button class="tab" onclick="userTab('audit',this)">📜 Audit</button>
+<button class="tab" onclick="userTab('settings',this)">⚙️ سیٹنگ</button>
+</div>
+
+<div class="layout">
+<div>
+<div id="user-pos" class="card">
+<h3>🛒 POS • <span id="receiptNoPreview"></span></h3>
+<input id="searchProd" placeholder="نام / SKU / Barcode سے تلاش کریں... اسکینر بھی یہاں کام کرے گا" oninput="renderUser()">
+<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap" id="catFilter"></div>
+<div class="grid" id="productGrid" style="margin-top:10px"></div>
+<h3 style="margin-top:16px">🧾 بل • Cart <span id="cartCount">0</span> <button class="small" onclick="holdCart()">⏸️ Hold</button> <button class="small" onclick="showHeld()">📂 Held دیکھیں (<span id="heldCount">0</span>)</button></h3>
+<div id="cartList"></div>
+<div class="row"><span>Subtotal</span><b id="subTotal">0</b></div>
+<div style="display:flex;gap:8px"><input id="billDiscount" type="number" placeholder="بل ڈسکاؤنٹ PKR" value="0" oninput="renderUser()"><select id="discountType"><option value="amount">PKR</option><option value="percent">% Percent</option></select></div>
+<div class="row"><span>Discount</span><b id="discountVal">0</b></div>
+<div class="row"><span>Tax (<span id="taxRateLabel">0</span>%)</span><b id="taxVal">0</b></div>
+<div class="row"><span><b>Grand Total</b></span><b id="grandTotal">0 PKR</b></div>
+<select id="payType"><option value="Cash">Cash</option><option value="JazzCash">JazzCash</option><option value="Card">Card</option><option value="Bank">Bank Transfer</option><option value="Split">Split Payment</option><option value="Udhaar">Udhaar / Credit</option></select>
+<div id="splitBox" class="hidden"><input id="splitCash" type="number" placeholder="Cash حصہ"><input id="splitOther" type="number" placeholder="دوسرا حصہ (JazzCash/Card)"></div>
+<select id="saleCustomer"><option value="">Walk-in Customer</option></select>
+<input id="paidAmount" type="number" placeholder="کسٹمر نے کتنے دیے؟">
+<div class="row"><span>واپس کرنا ہے (Change)</span><b id="changeVal">0</b></div>
+<button class="btn btn-green" onclick="checkout()">✅ چیک آؤٹ • بل بنائیں</button>
+<button class="btn btn-light" onclick="cart=[];renderUser()">کارٹ صاف کریں</button>
+<button class="btn btn-blue" onclick="printLastReceipt()">🖨️ آخری رسید پرنٹ کریں</button>
+<div id="printArea" class="printArea"></div>
+</div>
+
+<div id="user-products" class="card hidden"><h3>📦 پراڈکٹ / Categories</h3><input id="prodSearch" placeholder="پراڈکٹ تلاش کریں..." oninput="renderUser()"><button class="btn btn-green" onclick="openModal('prodModal')">+ نیا پراڈکٹ</button><button class="btn btn-light" onclick="exportCSV('products')">📥 Products CSV</button><div id="productList"></div></div>
+<div id="user-stock" class="card hidden"><h3>📊 اسٹاک + Ledger</h3><button class="btn btn-orange" onclick="openModal('adjustModal')">⚖️ اسٹاک ایڈجسٹمنٹ (وجہ لازمی)</button><div id="stockList"></div><h3 style="margin-top:14px">📜 Stock Ledger - ہر کمی بیشی کا ریکارڈ</h3><div id="ledgerList"></div></div>
+<div id="user-purchase" class="card hidden"><h3>🚚 خریداری + سپلائر</h3><input id="supName" placeholder="سپلائر کا نام"><input id="supPhone" placeholder="سپلائر فون"><button class="btn btn-dark" onclick="addSupplier()">+ سپلائر Add کریں</button><div id="supplierList"></div><hr><h4>نئی خریداری</h4><select id="purProduct"></select><input id="purQty" type="number" placeholder="مقدار"><input id="purCost" type="number" placeholder="خرید قیمت فی نغ"><select id="purSupplier"></select><select id="purStatus"><option value="Received">Received - اسٹاک میں آیا</option><option value="Draft">Draft - ابھی نہیں آیا</option></select><button class="btn btn-green" onclick="addPurchase()">✅ خریداری Save + اسٹاک بڑھائیں</button><div id="purchaseList"></div></div>
+<div id="user-cust" class="card hidden"><h3>👥 کسٹمر + کھاتہ</h3><button class="btn btn-orange" onclick="openModal('custModal')">+ نیا کسٹمر</button><div id="custList"></div></div>
+<div id="user-returns" class="card hidden"><h3>↩️ واپسی / Return</h3><input id="returnReceipt" placeholder="رسید نمبر لکھیں - جیسے KF-1001"><button class="btn btn-dark" onclick="findReturn()">🔍 سیل تلاش کریں</button><div id="returnBox"></div><h4>پچھلی واپسیاں</h4><div id="returnList"></div></div>
+<div id="user-shift" class="card hidden"><h3>🕒 شفٹ / Cash Register</h3><div id="shiftBox"></div><input id="shiftOpenCash" type="number" placeholder="Opening Cash"><button class="btn btn-green" onclick="openShift()">🟢 شفٹ کھولیں</button><input id="cashInOutAmt" type="number" placeholder="رقم"><input id="cashInOutNote" placeholder="وجہ - Cash In / Out"><button class="btn btn-orange" onclick="cashInOut('In')">➕ Cash In</button><button class="btn btn-red" onclick="cashInOut('Out')">➖ Cash Out</button><input id="shiftCounted" type="number" placeholder="گنتی والا کیش"><button class="btn btn-dark" onclick="closeShift()">🔴 شفٹ بند کریں</button><div id="shiftHistory"></div></div>
+<div id="user-expense" class="card hidden"><h3>💸 خرچہ</h3><input id="expTitle" placeholder="کس چیز کا خرچہ؟"><input id="expAmt" type="number" placeholder="رقم"><select id="expCat"><option>بجلی</option><option>کرایہ</option><option>چائے / کھانا</option><option>ٹرانسپورٹ</option><option>مرمت</option><option>دیگر</option></select><button class="btn btn-green" onclick="addExpense()">Save خرچہ</button><div id="expenseList"></div></div>
+<div id="user-sales" class="card hidden"><h3>🧾 سیل ہسٹری</h3><input id="salesSearch" placeholder="رسید / کسٹمر سے تلاش کریں..." oninput="renderUser()"><div id="salesList"></div></div>
+<div id="user-reports" class="card hidden"><h3>📈 رپورٹس</h3><div class="flex"><button class="small" onclick="setReportRange('today')">آج</button><button class="small" onclick="setReportRange('week')">7 دن</button><button class="small" onclick="setReportRange('month')">مہینہ</button><button class="small" onclick="setReportRange('all')">سب</button></div><div id="reportBox"></div><button class="btn btn-dark" onclick="exportCSV('sales')">📥 سیل رپورٹ CSV</button></div>
+<div id="user-audit" class="card hidden"><h3>📜 Audit Log - کس نے کیا کیا</h3><div id="auditList"></div></div>
+<div id="user-settings" class="card hidden"><h3>⚙️ سیٹنگ - دکان</h3><input id="setShop" placeholder="دکان کا نام"><input id="setPhone" placeholder="دکان کا فون"><input id="setAddress" placeholder="ایڈریس"><input id="setTax" type="number" placeholder="Tax % - جیسے 0 یا 5"><input id="setFooter" placeholder="رسید کا فوٹر - شکریہ..."><input id="setCurrency" placeholder="Currency - PKR"><label><input type="checkbox" id="setAllowNegative" style="width:auto"> Negative Stock کی اجازت دیں؟</label><br><label><input type="checkbox" id="setAllowCredit" style="width:auto"> Udhaar / Credit کی اجازت دیں؟</label><button class="btn btn-green" onclick="saveSettings()">Save سیٹنگ</button><hr><h3>💾 Backup / Restore</h3><button class="btn btn-blue" onclick="exportBackup()">📥 مکمل Backup Download کریں</button><input type="file" id="restoreFile" accept=".json"><button class="btn btn-dark" onclick="restoreBackup()">📂 Backup سے Restore کریں</button><p style="font-size:12px;color:#6B7280">Backup ہر ہفتے ضرور Download کریں۔ Browser کا ڈیٹا Clear ہونے پر یہی کام آئے گا۔</p><button class="btn btn-light" onclick="syncNow()">🔄 Sync Now - Firebase پر بھیجیں</button><p id="syncInfo"></p></div>
+</div>
+<div>
+<div class="card"><h3>📊 آج کا خلاصہ</h3><div id="dashBox"></div></div>
+<div class="card"><h3>⚠️ Low Stock</h3><div id="lowStockBox"></div></div>
+<div class="card"><h3>🏆 Best Selling</h3><div id="bestBox"></div></div>
+<div class="card"><h3>💰 Pending Sync</h3><div id="pendingBox"></div><button class="btn btn-orange" onclick="syncNow()">Sync Now</button></div>
+</div>
+</div>
+</div>
+
+<!-- ADMIN -->
+<div id="screen-admin" class="hidden">
+<div class="flex" style="padding:12px">
+<div class="stat"><small>کل یوزرز (Live)</small><b id="adminTotal">0</b></div>
+<div class="stat" style="border-color:#F59E0B"><small>Active</small><b id="adminActive">0</b></div>
+<div class="stat" style="border-color:#EF4444"><small>Blocked</small><b id="adminBlocked">0</b></div>
+<div class="stat" style="border-color:#2563EB"><small>کل آمدن</small><b id="adminRevenue">0 PKR</b></div>
+</div>
+<div class="card"><h3>👑 Live کسٹمرز</h3><input id="adminSearch" placeholder="تلاش کریں..." oninput="renderAdmin()"><div style="overflow:auto"><table class="table"><thead><tr><th>دکان / مالک</th><th>فون / شہر</th><th>پلان / تاریخ</th><th>Status</th><th>Action</th></tr></thead><tbody id="adminTable"></tbody></table></div><button class="btn btn-dark" onclick="exportUsers()">📥 سارا ریکارڈ واٹس ایپ پر بھیجیں</button></div>
+<div class="card"><h3>📊 Live Activity</h3><div id="liveActivity"></div></div>
+<div class="card"><h3>🏪 میری دکان بھی چلائیں</h3><button class="btn btn-green" onclick="showScreen('user')">🛒 میری دکان کھولیں (POS)</button></div>
+</div>
+
+<!-- MODALS -->
+<div id="prodModal" class="modal"><div class="modalBox"><h3>+ نیا پراڈکٹ</h3><input id="pName" placeholder="نام *"><input id="pSKU" placeholder="SKU"><input id="pBarcode" placeholder="Barcode"><input id="pCat" placeholder="Category - جیسے کریانہ"><input id="pBrand" placeholder="Brand"><input id="pUnit" placeholder="Unit - Pcs / Kg / Ltr" value="Pcs"><input id="pBuy" type="number" placeholder="خرید قیمت"><input id="pSell" type="number" placeholder="فروخت قیمت"><input id="pQty" type="number" placeholder="Opening Stock"><input id="pReorder" type="number" placeholder="Reorder Level - جیسے 5" value="5"><button class="btn btn-green" onclick="addProduct()">Save</button><button class="btn btn-light" onclick="closeModal('prodModal')">Cancel</button></div></div>
+<div id="custModal" class="modal"><div class="modalBox"><h3>+ نیا کسٹمر</h3><input id="cName" placeholder="نام"><input id="cPhone" placeholder="فون"><input id="cAddress" placeholder="ایڈریس"><button class="btn btn-green" onclick="addCustomer()">Save</button><button class="btn btn-light" onclick="closeModal('custModal')">Cancel</button></div></div>
+<div id="adjustModal" class="modal"><div class="modalBox"><h3>⚖️ اسٹاک ایڈجسٹمنٹ</h3><select id="adjProduct"></select><input id="adjQty" type="number" placeholder="نئی درست مقدار لکھیں"><input id="adjReason" placeholder="وجہ لازمی - ٹوٹ گیا / گنتی غلط تھی..."><button class="btn btn-green" onclick="doAdjust()">Save Adjustment</button><button class="btn btn-light" onclick="closeModal('adjustModal')">Cancel</button></div></div>
+<div id="heldModal" class="modal"><div class="modalBox"><h3>📂 Held Bills</h3><div id="heldList"></div><button class="btn btn-light" onclick="closeModal('heldModal')">Close</button></div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig = { apiKey: "AIzaSyBGH2pGj3HleNTmSvtmR8CbEPtpamgkNdc", authDomain: "kf-pos-pro.firebaseapp.com", projectId: "kf-pos-pro", storageBucket: "kf-pos-pro.firebasestorage.app", messagingSenderId: "660635577810", appId: "1:660635577810:web:ed13c1c8ff48f38a5e6c0b" };
+let db=null, allUsers=[];
+try{ const app=initializeApp(firebaseConfig); db=getFirestore(app); document.getElementById('connStatus').innerText="● LIVE • Firebase Connected"; document.getElementById('connStatus').className="pill pill-green"; onSnapshot(query(collection(db,"kf_users"), orderBy("createdAt","desc")), (snap)=>{ allUsers=snap.docs.map(d=>({id:d.id,...d.data()})); if(window.currentUser?.isAdmin) renderAdmin(); let act=document.getElementById('liveActivity'); if(act&&window.currentUser?.isAdmin) act.innerHTML=allUsers.slice(0,5).map(u=>'<div class="row"><span>🟢 <b>'+u.shop+'</b> - '+u.owner+' • '+u.city+'</span><small>'+(u.date||'')+'</small></div>').join('')||'<p>ابھی کوئی یوزر نہیں</p>'; }); }catch(e){ document.getElementById('connStatus').innerText="● Offline Mode"; }
+window.db=db;
+let uid=()=> 'ID-'+Date.now()+'-'+Math.floor(Math.random()*9999);
+let load=(k,f)=>{ try{return JSON.parse(localStorage.getItem(k))||f}catch(e){return f} };
+let S = {
+  settings: load('kf_p_settings',{shop:'KF POS Pro',phone:'03027911041',address:'Lahore',tax:0,footer:'شکریہ! دوبارہ تشریف لائیے گا',currency:'PKR',allowNegative:false,allowCredit:true}),
+  stock: load('kf_user_stock',[{id:uid(),name:"چینی",sku:"CH-001",barcode:"1001",cat:"کریانہ",brand:"",unit:"Kg",buy:170,sell:190,qty:20,reorder:5},{id:uid(),name:"دال",sku:"DL-001",barcode:"1002",cat:"کریانہ",brand:"",unit:"Kg",buy:280,sell:320,qty:15,reorder:5},{id:uid(),name:"سرف",sku:"SRF-001",barcode:"1003",cat:"گھر",brand:"",unit:"Pcs",buy:180,sell:220,qty:10,reorder:3},{id:uid(),name:"چائے",sku:"CHY-001",barcode:"1004",cat:"کریانہ",brand:"",unit:"Pcs",buy:450,sell:520,qty:8,reorder:2}]),
+  customers: load('kf_user_cust',[{id:uid(),name:"احمد بھائی",phone:"0300-111",address:"مین بازار",udhaar:0}]),
+  sales: load('kf_user_sales',[]), ledger: load('kf_ledger',[]), suppliers: load('kf_suppliers',[]), purchases: load('kf_purchases',[]), returns: load('kf_returns',[]), expenses: load('kf_expenses',[]), shifts: load('kf_shifts',[]), audit: load('kf_audit',[]), held: load('kf_held',[]), outbox: load('kf_outbox',[]), localUsers: load('kf_admin_users',[])
+};
+let cart=[]; let heldCart=[]; let isRegister=false; let reportRange='today'; let lastReceipt=null; let currentCat='All';
+window.currentUser = load('kf_current_user',null);
+window.cart=cart;
+function save(){ for(let k in S){ let key = k==='settings'?'kf_p_settings':k==='stock'?'kf_user_stock':k==='customers'?'kf_user_cust':k==='sales'?'kf_user_sales':k==='ledger'?'kf_ledger':k==='suppliers'?'kf_suppliers':k==='purchases'?'kf_purchases':k==='returns'?'kf_returns':k==='expenses'?'kf_expenses':k==='shifts'?'kf_shifts':k==='audit'?'kf_audit':k==='held'?'kf_held':k==='outbox'?'kf_outbox':k==='localUsers'?'kf_admin_users':k; localStorage.setItem(key, JSON.stringify(S[k])); } if(window.currentUser) localStorage.setItem('kf_current_user', JSON.stringify(window.currentUser)); }
+function audit(action, detail){ S.audit.unshift({id:uid(),action,detail,user:window.currentUser?.owner||window.currentUser?.shop||'Guest',date:new Date().toLocaleString()}); if(S.audit.length>200) S.audit=S.audit.slice(0,200); save(); }
+function addLedger(productId, productName, type, qtyChange, newQty, reason){ S.ledger.unshift({id:uid(),productId,productName,type,qtyChange,newQty,reason,user:window.currentUser?.owner||'Admin',date:new Date().toLocaleString()}); save(); }
+function queueSync(type, data){ let item={id:uid(),type,data,createdAt:new Date().toISOString(),status:'pending'}; S.outbox.push(item); save(); updateSyncUI(); syncNow(); }
+function updateSyncUI(){ let p=S.outbox.filter(o=>o.status==='pending').length; document.getElementById('syncStatus').innerText = navigator.onLine ? (p>0? '🟡 Online • '+p+' Pending Sync' : '● Online • Synced') : '🔴 Offline • '+p+' Pending - نیٹ آتے ہی Sync ہوگا'; document.getElementById('pendingBox').innerHTML = p===0? '<p>سب Sync ہے ✅</p>' : '<p><b>'+p+'</b> آئٹم Pending ہیں</p>'+S.outbox.slice(-5).map(o=>'<div class="row"><span>'+o.type+'</span><span>'+o.status+'</span></div>').join(''); document.getElementById('syncInfo').innerText = 'Pending: '+p+' • Last Sync: '+new Date().toLocaleString(); }
+window.syncNow = async function(){ if(!db) { updateSyncUI(); return; } for(let item of S.outbox){ if(item.status!=='pending') continue; try{ if(item.type==='sale') await addDoc(collection(db,"kf_sales"), {...item.data, createdAt: serverTimestamp()}); if(item.type==='user') await addDoc(collection(db,"kf_users"), {...item.data, createdAt: serverTimestamp()}); item.status='synced'; }catch(e){ item.status='failed'; } } save(); updateSyncUI(); };
+window.openModal=function(id){document.getElementById(id).style.display='block'};
+window.closeModal=function(id){document.getElementById(id).style.display='none'};
+window.toggleAuth=function(){ isRegister=!isRegister; document.getElementById('registerFields').classList.toggle('hidden',!isRegister); document.getElementById('authTitle').innerText=isRegister?'📝 Register کریں':'🔐 Login کریں'; document.getElementById('toggleBtn').innerText=isRegister?'پہلے سے اکاؤنٹ ہے؟ Login کریں':'نیا اکاؤنٹ بنائیں؟ Register کریں'; };
+window.doLogin=async function(){
+  let phone=document.getElementById('authPhone').value.trim(); let pass=document.getElementById('authPass').value.trim(); let msg=document.getElementById('authMsg');
+  if(phone==="03027911041" && pass==="admin123"){ window.currentUser={shop:"ADMIN",owner:"خالد فاروق",phone,isAdmin:true,role:"Owner"}; save(); audit('Admin Login','Admin نے Login کیا'); showScreen('admin'); return; }
+  if(isRegister){
+    let shop=document.getElementById('regShop').value.trim(); let owner=document.getElementById('regOwner').value.trim(); let city=document.getElementById('regCity').value.trim();
+    if(!shop||!owner||!phone||!pass){msg.innerText='ساری معلومات لکھیں';return;}
+    let newKey="KF-"+(1000+Math.floor(Math.random()*9000)); let nu={shop,owner,phone,city,plan:document.getElementById('regPlan').value,pass,status:"Active",date:new Date().toLocaleDateString(),key:newKey,role:document.getElementById('regRole').value};
+    try{ if(db) await addDoc(collection(db,"kf_users"), {...nu, createdAt: serverTimestamp()}); else { S.localUsers.push(nu); save(); } }catch(e){ msg.innerText='Firebase Error: '+e.message; return; }
+    window.currentUser=nu; save(); audit('New User Register', shop+' - '+owner); window.open('https://wa.me/923027911041?text='+encodeURIComponent('🆕 نیا کسٹمر LIVE - KF POS\nدکان: '+shop+'\nمالک: '+owner+'\nفون: '+phone+'\nشہر: '+city+'\nپلان: '+nu.plan+'\nKey: '+newKey)); alert('مبارک ہو! اکاؤنٹ بن گیا۔\nLicense Key: '+newKey); showScreen('user'); return;
+  }
+  let found=null; if(db && allUsers.length>0) found=allUsers.find(u=>u.phone===phone && (u.pass===pass||u.key===pass)); if(!found) found=S.localUsers.find(u=>u.phone===phone && (u.pass===pass||u.key===pass));
+  if(!found){ msg.innerText='فون یا پاسورڈ غلط ہے۔'; return; } if(found.status==="Blocked"){ msg.innerText='آپ کا اکاؤنٹ Block ہے۔ Admin: 03027911041'; return; }
+  window.currentUser=found; save(); audit('Login', found.shop+' نے Login کیا'); showScreen('user');
+};
+window.logout=function(){ audit('Logout', window.currentUser?.shop||''); window.currentUser=null; localStorage.removeItem('kf_current_user'); showScreen('auth'); };
+window.showScreen=function(which){
+  document.getElementById('screen-auth').classList.toggle('hidden',which!=='auth'); document.getElementById('screen-user').classList.toggle('hidden',which!=='user'); document.getElementById('screen-admin').classList.toggle('hidden',which!=='admin');
+  if(which==='user') document.getElementById('headerShop').innerText=window.currentUser.shop+' • '+window.currentUser.owner+' • '+ (window.currentUser.role||'Owner');
+  if(which==='admin') document.getElementById('headerShop').innerText='Admin Panel • خالد فاروق - Live';
+  if(which==='user') renderUser(); if(which==='admin') renderAdmin(); updateSyncUI();
+};
+window.userTab=function(name,btn){ document.querySelectorAll('#screen-user .tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); ['pos','products','stock','purchase','cust','returns','shift','expense','sales','reports','audit','settings'].forEach(t=>document.getElementById('user-'+t).classList.toggle('hidden',t!==name)); renderUser(); };
+function calcTotals(){ let sub=cart.reduce((a,c)=>a+S.stock.find(p=>p.id===c.id).sell*c.qty,0); let discAmt=0; let dv=parseFloat(document.getElementById('billDiscount')?.value||0)||0; discAmt = document.getElementById('discountType')?.value==='percent' ? sub*dv/100 : dv; let afterDisc=Math.max(0,sub-discAmt); let tax=afterDisc*S.settings.tax/100; let total=afterDisc+tax; return {sub,disc:discAmt,tax,total}; }
+window.addToCart=function(id){ let p=S.stock.find(x=>x.id===id); if(!p||p.qty<=0){alert('اسٹاک ختم');return;} let f=cart.find(c=>c.id===id); if(f){ if(f.qty>=p.qty){alert('صرف '+p.qty+' ہے');return;} f.qty++; } else cart.push({id,qty:1}); renderUser(); };
+window.changeQty=function(ci,diff){ let item=cart[ci]; if(!item) return; let p=S.stock.find(x=>x.id===item.id); let n=item.qty+diff; if(n<=0){ if(confirm(p.name+' کو نکال دیں؟')) cart.splice(ci,1); } else if(n>p.qty){ alert('اسٹاک میں صرف '+p.qty+' ہے!'); item.qty=p.qty; } else item.qty=n; renderUser(); };
+window.setQtyManual=function(ci,val){ let item=cart[ci]; if(!item) return; let p=S.stock.find(x=>x.id===item.id); let n=parseInt(val); if(isNaN(n)||n<=0){ if(val===""||n===0) cart.splice(ci,1); renderUser(); return; } if(n>p.qty){ alert('اسٹاک میں صرف '+p.qty+' ہے!'); item.qty=p.qty; } else item.qty=n; renderUser(); };
+window.removeFromCart=function(ci){ cart.splice(ci,1); renderUser(); };
+window.holdCart=function(){ if(cart.length===0){alert('کارٹ خالی ہے');return;} let name=prompt('Hold Bill کا نام لکھیں','Bill '+(S.held.length+1)); S.held.push({id:uid(),name:name||'Bill',cart:JSON.parse(JSON.stringify(cart)),date:new Date().toLocaleString()}); cart=[]; save(); renderUser(); alert('Bill Hold ہو گیا'); };
+window.showHeld=function(){ document.getElementById('heldList').innerHTML=S.held.length?S.held.map((h,i)=>'<div class="row"><span><b>'+h.name+'</b><br><small>'+h.date+' • '+h.cart.length+' آئٹم</small></span><span><button class="small" onclick="resumeHeld('+i+')">▶️ کھولیں</button><button class="small" onclick="S.held.splice('+i+',1);save();showHeld();renderUser()">🗑</button></span></div>').join(''):'<p>کوئی Held Bill نہیں</p>'; openModal('heldModal'); };
+window.resumeHeld=function(i){ cart=S.held[i].cart; S.held.splice(i,1); save(); closeModal('heldModal'); renderUser(); userTab('pos', document.querySelector('#screen-user .tab')); };
+window.checkout=async function(){
+  if(cart.length===0){alert('کارٹ خالی ہے');return;}
+  let t=calcTotals(); let type=document.getElementById('payType').value; let ci=document.getElementById('saleCustomer').value;
+  if(type==='Udhaar' && !S.settings.allowCredit){ alert('Udhaar اس دکان میں بند ہے۔ سیٹنگ سے On کریں'); return; }
+  if(type==='Udhaar' && ci===''){alert('ادھار کے لیے کسٹمر منتخب کریں');return;}
+  let paid=parseFloat(document.getElementById('paidAmount').value||t.total)||t.total;
+  let change=Math.max(0,paid-t.total);
+  if(type==='Split'){ let a=parseFloat(document.getElementById('splitCash').value||0)||0; let b=parseFloat(document.getElementById('splitOther').value||0)||0; if(a+b < t.total){ alert('Split Payment کم ہے۔ Total: '+t.total); return; } }
+  let receipt='KF-'+(1000+S.sales.length+1)+'-'+Date.now().toString().slice(-4);
+  for(let c of cart){ let p=S.stock.find(x=>x.id===c.id); p.qty-=c.qty; addLedger(p.id,p.name,'sale',-c.qty,p.qty,'Sale '+receipt); }
+  if(type==='Udhaar'){ let cust=S.customers[ci]; cust.udhaar+=t.total; cust.lastSale=new Date().toLocaleDateString(); }
+  let sale={id:uid(),receipt,total:t.total,subtotal:t.sub,discount:t.disc,tax:t.tax,paid,change,type,customer:ci!==''?S.customers[ci].name:'Walk-in',date:new Date().toLocaleString(),dateOnly:new Date().toDateString(),items:cart.map(c=>{let p=S.stock.find(x=>x.id===c.id); return p.name+' x '+c.qty}).join(', '),itemsDetail:JSON.parse(JSON.stringify(cart)),shop:window.currentUser?.shop||'',phone:window.currentUser?.phone||'',cashier:window.currentUser?.owner||''};
+  S.sales.unshift(sale); lastReceipt=sale; queueSync('sale',sale); cart=[]; document.getElementById('paidAmount').value=''; document.getElementById('billDiscount').value='0'; save(); audit('Sale', receipt+' - '+t.total+' PKR - '+type); renderUser(); alert('✅ بل بن گیا!\nرسید: '+receipt+'\nTotal: '+t.total+' PKR\nواپس: '+change+' PKR'); printReceipt(sale);
+};
+function printReceipt(sale){ let html='<div style="font-family:monospace;max-width:280px;margin:auto;text-align:center"><h3>'+S.settings.shop+'</h3><p>'+S.settings.address+'<br>'+S.settings.phone+'</p><hr><p style="text-align:left">رسید: '+sale.receipt+'<br>تاریخ: '+sale.date+'<br>کیشئر: '+sale.cashier+'<br>کسٹمر: '+sale.customer+'</p><hr>'; sale.itemsDetail.forEach(it=>{let p=S.stock.find(x=>x.id===it.id); if(p) html+='<div style="display:flex;justify-content:space-between"><span>'+p.name+' x '+it.qty+'</span><b>'+(p.sell*it.qty)+'</b></div>'}); html+='<hr><div style="display:flex;justify-content:space-between"><span>Subtotal</span><b>'+sale.subtotal+'</b></div><div style="display:flex;justify-content:space-between"><span>Discount</span><b>'+sale.discount+'</b></div><div style="display:flex;justify-content:space-between"><span>Tax</span><b>'+sale.tax+'</b></div><div style="display:flex;justify-content:space-between"><span><b>Total</b></span><b>'+sale.total+' '+S.settings.currency+'</b></div><div style="display:flex;justify-content:space-between"><span>Paid</span><b>'+sale.paid+'</b></div><div style="display:flex;justify-content:space-between"><span>Change</span><b>'+sale.change+'</b></div><hr><p>'+S.settings.footer+'</p></div>'; document.getElementById('printArea').innerHTML=html; }
+window.printLastReceipt=function(){ if(!lastReceipt){alert('ابھی کوئی رسید نہیں');return;} printReceipt(lastReceipt); window.print(); };
+window.addProduct=function(){ let n=document.getElementById('pName').value.trim(); if(!n){alert('نام لکھیں');return;} let sku=document.getElementById('pSKU').value.trim()||'SKU-'+(1000+S.stock.length); if(S.stock.some(p=>p.sku===sku)){alert('یہ SKU پہلے سے ہے');return;} let np={id:uid(),name:n,sku,barcode:document.getElementById('pBarcode').value.trim(),cat:document.getElementById('pCat').value.trim()||'General',brand:document.getElementById('pBrand').value.trim(),unit:document.getElementById('pUnit').value||'Pcs',buy:parseInt(document.getElementById('pBuy').value)||0,sell:parseInt(document.getElementById('pSell').value)||0,qty:parseInt(document.getElementById('pQty').value)||0,reorder:parseInt(document.getElementById('pReorder').value)||5}; S.stock.push(np); addLedger(np.id,np.name,'opening',np.qty,np.qty,'Opening Stock'); save(); audit('Product Add', n); closeModal('prodModal'); renderUser(); };
+window.addCustomer=function(){ let n=document.getElementById('cName').value.trim(); if(!n){alert('نام لکھیں');return;} S.customers.push({id:uid(),name:n,phone:document.getElementById('cPhone').value,address:document.getElementById('cAddress').value,udhaar:0}); save(); audit('Customer Add', n); closeModal('custModal'); renderUser(); };
+window.payUdhaar=function(i){ let amt=parseInt(prompt(S.customers[i].name+' نے کتنے دیے؟ ادھار: '+S.customers[i].udhaar))||0; if(amt>0){ S.customers[i].udhaar=Math.max(0,S.customers[i].udhaar-amt); save(); audit('Udhaar Payment', S.customers[i].name+' - '+amt); renderUser(); } };
+window.doAdjust=function(){ let pid=document.getElementById('adjProduct').value; let p=S.stock.find(x=>x.id===pid); let newQty=parseInt(document.getElementById('adjQty').value); let reason=document.getElementById('adjReason').value.trim(); if(!p||isNaN(newQty)){alert('صحیح مقدار لکھیں');return;} if(!reason){alert('وجہ لازمی ہے');return;} if(window.currentUser?.role==='Cashier'){alert('Cashier کو Adjustment کی اجازت نہیں');return;} let diff=newQty-p.qty; addLedger(p.id,p.name,'adjustment',diff,newQty,reason); p.qty=newQty; save(); audit('Stock Adjustment', p.name+' '+diff+' - '+reason); closeModal('adjustModal'); renderUser(); };
+window.addSupplier=function(){ let n=document.getElementById('supName').value.trim(); if(!n){alert('نام لکھیں');return;} S.suppliers.push({id:uid(),name:n,phone:document.getElementById('supPhone').value,balance:0}); save(); renderUser(); };
+window.addPurchase=function(){ let pid=document.getElementById('purProduct').value; let p=S.stock.find(x=>x.id===pid); let qty=parseInt(document.getElementById('purQty').value)||0; let cost=parseInt(document.getElementById('purCost').value)||p.buy; let sid=document.getElementById('purSupplier').value; let sup=S.suppliers.find(s=>s.id===sid); let status=document.getElementById('purStatus').value; if(!p||qty<=0){alert('صحیح مقدار لکھیں');return;} let total=qty*cost; S.purchases.unshift({id:uid(),product:p.name,supplier:sup?.name||'Unknown',qty,cost,total,status,date:new Date().toLocaleString()}); if(status==='Received'){ p.qty+=qty; addLedger(p.id,p.name,'purchase',qty,p.qty,'Purchase from '+(sup?.name||'')); } save(); audit('Purchase', p.name+' x '+qty+' - '+total); renderUser(); };
+window.findReturn=function(){ let r=document.getElementById('returnReceipt').value.trim(); let s=S.sales.find(x=>x.receipt===r); if(!s){ document.getElementById('returnBox').innerHTML='<p style="color:red">یہ رسید نہیں ملی</p>'; return; } document.getElementById('returnBox').innerHTML='<div class="card" style="margin:0"><b>'+s.receipt+'</b> • '+s.date+' • Total '+s.total+'<br>Items: '+s.items+'<br><input id="retQty" type="number" placeholder="کتنی واپس کرنی ہے؟" value="1"><input id="retReason" placeholder="واپسی کی وجہ"><button class="btn btn-red" onclick="doReturn(\''+s.id+'\')">↩️ واپسی کریں</button></div>'; };
+window.doReturn=function(saleId){ let s=S.sales.find(x=>x.id===saleId); let qty=parseInt(document.getElementById('retQty').value)||1; let reason=document.getElementById('retReason').value.trim()||'Customer Return'; if(!s){alert('سیل نہیں ملی');return;} let firstItem=s.itemsDetail[0]; let p=S.stock.find(x=>x.id===firstItem.id); let refund=p? p.sell*qty : 0; if(p){ p.qty+=qty; addLedger(p.id,p.name,'return',qty,p.qty,reason+' - '+s.receipt); } S.returns.unshift({id:uid(),receipt:s.receipt,product:p?.name||'',qty,refund,reason,date:new Date().toLocaleString()}); save(); audit('Return', s.receipt+' - '+refund); renderUser(); alert('واپسی ہو گئی۔ Refund: '+refund+' PKR'); };
+window.openShift=function(){ let cash=parseInt(document.getElementById('shiftOpenCash').value)||0; let sh={id:uid(),openCash:cash,openedBy:window.currentUser?.owner||'',openDate:new Date().toLocaleString(),status:'Open',cashIn:0,cashOut:0,expenses:0}; S.shifts.unshift(sh); save(); audit('Shift Open', cash+' PKR'); renderUser(); };
+window.cashInOut=function(type){ let amt=parseInt(document.getElementById('cashInOutAmt').value)||0; let note=document.getElementById('cashInOutNote').value.trim(); if(amt<=0){alert('رقم لکھیں');return;} if(!note){alert('وجہ لکھیں');return;} let sh=S.shifts.find(s=>s.status==='Open'); if(!sh){alert('پہلے شفٹ کھولیں');return;} if(type==='In') sh.cashIn+=amt; else sh.cashOut+=amt; save(); audit('Cash '+type, amt+' - '+note); renderUser(); };
+window.closeShift=function(){ let sh=S.shifts.find(s=>s.status==='Open'); if(!sh){alert('کوئی شفٹ کھلی نہیں');return;} let counted=parseInt(document.getElementById('shiftCounted').value)||0; let cashSales=S.sales.filter(s=>s.dateOnly===new Date().toDateString() && s.type==='Cash').reduce((a,s)=>a+s.total,0); let expected=sh.openCash+cashSales+sh.cashIn-sh.cashOut; sh.status='Closed'; sh.counted=counted; sh.expected=expected; sh.variance=counted-expected; sh.closeDate=new Date().toLocaleString(); save(); audit('Shift Close', 'Expected '+expected+' Counted '+counted+' Variance '+sh.variance); renderUser(); alert('شفٹ بند! Expected: '+expected+' Counted: '+counted+' فرق: '+sh.variance); };
+window.addExpense=function(){ let t=document.getElementById('expTitle').value.trim(); let amt=parseInt(document.getElementById('expAmt').value)||0; if(!t||amt<=0){alert('صحیح خرچہ لکھیں');return;} S.expenses.unshift({id:uid(),title:t,amount:amt,cat:document.getElementById('expCat').value,date:new Date().toLocaleString(),user:window.currentUser?.owner||''}); save(); audit('Expense', t+' - '+amt); renderUser(); };
+window.setReportRange=function(r){ reportRange=r; renderUser(); };
+window.saveSettings=function(){ S.settings.shop=document.getElementById('setShop').value.trim()||S.settings.shop; S.settings.phone=document.getElementById('setPhone').value.trim()||S.settings.phone; S.settings.address=document.getElementById('setAddress').value.trim()||S.settings.address; S.settings.tax=parseFloat(document.getElementById('setTax').value)||0; S.settings.footer=document.getElementById('setFooter').value.trim()||S.settings.footer; S.settings.currency=document.getElementById('setCurrency').value.trim()||'PKR'; S.settings.allowNegative=document.getElementById('setAllowNegative').checked; S.settings.allowCredit=document.getElementById('setAllowCredit').checked; save(); audit('Settings Change', 'Shop/Tax/Currency بدلی'); document.getElementById('shopTitle').innerText='🏪 '+S.settings.shop; renderUser(); alert('سیٹنگ Save ہو گئی'); };
+window.exportBackup=function(){ let data={version:'2.0',exportedAt:new Date().toISOString(),shop:S.settings,stock:S.stock,customers:S.customers,sales:S.sales,ledger:S.ledger,suppliers:S.suppliers,purchases:S.purchases,returns:S.returns,expenses:S.expenses,shifts:S.shifts,audit:S.audit}; let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='KF-POS-Backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); audit('Backup Export','Full backup download'); };
+window.restoreBackup=function(){ let f=document.getElementById('restoreFile').files[0]; if(!f){alert('پہلے فائل منتخب کریں');return;} if(!confirm('کیا آپ پرانا ڈیٹا Replace کرنا چاہتے ہیں؟ پہلے Backup لے لیں!')) return; let r=new FileReader(); r.onload=function(){ try{ let d=JSON.parse(r.result); if(!d.stock||!d.sales){alert('یہ صحیح Backup فائل نہیں');return;} S.stock=d.stock; S.customers=d.customers||[]; S.sales=d.sales||[]; S.ledger=d.ledger||[]; S.suppliers=d.suppliers||[]; S.purchases=d.purchases||[]; S.returns=d.returns||[]; S.expenses=d.expenses||[]; S.shifts=d.shifts||[]; if(d.shop) S.settings=d.shop; save(); audit('Backup Restore','Backup سے Restore کیا'); renderUser(); alert('✅ Restore ہو گیا!'); }catch(e){alert('فائل خراب ہے');} }; r.readAsText(f); };
+window.exportCSV=function(type){ let rows=[]; if(type==='products'){ rows=[['Name','SKU','Barcode','Category','Buy','Sell','Qty']]; S.stock.forEach(p=>rows.push([p.name,p.sku,p.barcode,p.cat,p.buy,p.sell,p.qty])); } else { rows=[['Receipt','Date','Customer','Type','Total','Discount','Tax']]; S.sales.forEach(s=>rows.push([s.receipt,s.date,s.customer,s.type,s.total,s.discount,s.tax])); } let csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n'); let blob=new Blob([csv],{type:'text/csv'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='KF-'+type+'.csv'; a.click(); };
+window.renderUser=function(){
+  document.getElementById('shopTitle').innerText='🏪 '+S.settings.shop; document.getElementById('loginShopName').innerText=S.settings.shop;
+  let today=S.sales.filter(s=>s.dateOnly===new Date().toDateString()); let tSale=today.reduce((a,s)=>a+s.total,0); let tProfit=today.reduce((a,s)=>a+(s.total - s.itemsDetail.reduce((x,it)=>{let p=S.stock.find(y=>y.id===it.id); return x+ (p? p.buy*it.qty:0)},0)),0); let tUdhaar=S.customers.reduce((a,c)=>a+c.udhaar,0);
+  let expToday=S.expenses.filter(e=>new Date(e.date).toDateString()===new Date().toDateString()).reduce((a,e)=>a+e.amount,0);
+  document.getElementById('todaySale').innerText=tSale.toLocaleString()+' '+S.settings.currency; document.getElementById('todayProfit').innerText=Math.max(0,tProfit-expToday).toLocaleString()+' '+S.settings.currency; document.getElementById('totalUdhaar').innerText=tUdhaar.toLocaleString()+' '+S.settings.currency;
+  let openShift=S.shifts.find(s=>s.status==='Open'); document.getElementById('shiftBadge').innerText=openShift? ' • 🟢 Shift Open':' • 🔴 Shift Closed'; document.getElementById('cashDrawer').innerText=(openShift? openShift.openCash+openShift.cashIn-openShift.cashOut : 0).toLocaleString();
+  document.getElementById('taxRateLabel').innerText=S.settings.tax;
+  document.getElementById('receiptNoPreview').innerText='اگلی رسید: KF-'+(1000+S.sales.length+1);
+  let cats=['All',...new Set(S.stock.map(p=>p.cat))]; document.getElementById('catFilter').innerHTML=cats.map(c=>'<button class="small" style="'+(currentCat===c?'background:#111827;color:#fff':'')+'" onclick="currentCat=\''+c+'\';renderUser()">'+c+'</button>').join('');
+  let q=(document.getElementById('searchProd')?.value||'').toLowerCase();
+  let filtered=S.stock.filter(p=>(currentCat==='All'||p.cat===currentCat) && (p.name.toLowerCase().includes(q)||p.sku.toLowerCase().includes(q)||(p.barcode||'').toLowerCase().includes(q)));
+  document.getElementById('productGrid').innerHTML=filtered.map(p=>'<div class="prod" onclick="addToCart(\''+p.id+'\')"><b>'+p.name+'</b><div class="price">'+p.sell+' '+S.settings.currency+'</div><small>SKU: '+p.sku+' • اسٹاک: '+p.qty+' • '+p.cat+'</small></div>').join('')||'<p>کوئی پراڈکٹ نہیں ملا</p>';
+  document.getElementById('splitBox').classList.toggle('hidden', document.getElementById('payType').value!=='Split'); document.getElementById('payType').onchange=()=>renderUser();
+  let t=calcTotals(); document.getElementById('subTotal').innerText=t.sub.toLocaleString(); document.getElementById('discountVal').innerText=t.disc.toLocaleString(); document.getElementById('taxVal').innerText=t.tax.toLocaleString(); document.getElementById('grandTotal').innerText=t.total.toLocaleString()+' '+S.settings.currency;
+  let paid=parseFloat(document.getElementById('paidAmount')?.value||t.total)||t.total; document.getElementById('changeVal').innerText=Math.max(0,paid-t.total).toLocaleString();
+  document.getElementById('cartCount').innerText=cart.length; document.getElementById('heldCount').innerText=S.held.length;
+  document.getElementById('cartList').innerHTML = cart.length ? cart.map((c,ci)=>{ let p=S.stock.find(x=>x.id===c.id); return '<div class="cartItem"><div style="flex:1"><b>'+p.name+'</b><br><small style="color:#6B7280">'+p.sell+' '+S.settings.currency+' • اسٹاک: '+p.qty+'</small></div><div class="qtyBox"><button class="qtyBtn" onclick="changeQty('+ci+',-1)">−</button><input class="qtyInput" type="number" value="'+c.qty+'" min="1" max="'+p.qty+'" onclick="this.select()" onchange="setQtyManual('+ci+',this.value)"><button class="qtyBtn" onclick="changeQty('+ci+',1)">+</button></div><div style="text-align:right;min-width:70px"><b>'+(p.sell*c.qty).toLocaleString()+'</b><br><button style="border:none;background:none;color:#EF4444;font-size:12px;cursor:pointer" onclick="removeFromCart('+ci+')">🗑 ہٹائیں</button></div></div>'; }).join('') : '<p style="color:#6B7280">کارٹ خالی ہے</p>';
+  let sc=document.getElementById('saleCustomer'); let cur=sc.value; sc.innerHTML='<option value="">Walk-in Customer</option>'; S.customers.forEach((c,i)=>{let o=document.createElement('option'); o.value=i; o.text=c.name+' - ادھار: '+c.udhaar; sc.appendChild(o);}); sc.value=cur;
+  let pq=document.getElementById('prodSearch')?.value.toLowerCase()||''; document.getElementById('productList').innerHTML=S.stock.filter(p=>p.name.toLowerCase().includes(pq)).map((p,i)=>'<div class="row"><span><b>'+p.name+'</b> • '+p.sku+' • '+p.cat+'<br>خرید '+p.buy+' • بیچنا '+p.sell+' • اسٹاک '+p.qty+' • Reorder '+p.reorder+'</span><button class="small" onclick="S.stock.splice('+i+',1);save();renderUser()">🗑</button></div>').join('')||'<p>کوئی پراڈکٹ نہیں</p>';
+  document.getElementById('stockList').innerHTML=S.stock.map(p=>'<div class="row"><span><b>'+p.name+'</b> • '+p.cat+' • اسٹاک <b>'+p.qty+'</b> • قیمت '+p.sell+' • مالیت '+(p.qty*p.buy).toLocaleString()+'</span><span>'+(p.qty<=p.reorder?'<span class="pill pill-red">LOW</span>':'<span class="pill pill-green">OK</span>')+'</span></div>').join('');
+  document.getElementById('ledgerList').innerHTML=S.ledger.slice(0,30).map(l=>'<div class="row"><span><b>'+l.productName+'</b> • '+l.type+' • '+(l.qtyChange>0?'+':'')+l.qtyChange+' → '+l.newQty+'<br><small>'+l.reason+' • '+l.user+' • '+l.date+'</small></span></div>').join('')||'<p>کوئی Ledger نہیں</p>';
+  document.getElementById('supplierList').innerHTML=S.suppliers.map((s,i)=>'<div class="row"><span><b>'+s.name+'</b> • '+s.phone+'</span><button class="small" onclick="S.suppliers.splice('+i+',1);save();renderUser()">🗑</button></div>').join('')||'<p>کوئی سپلائر نہیں</p>';
+  let pp=document.getElementById('purProduct'); pp.innerHTML=S.stock.map(p=>'<option value="'+p.id+'">'+p.name+'</option>').join(''); let ps=document.getElementById('purSupplier'); ps.innerHTML=S.suppliers.length? S.suppliers.map(s=>'<option value="'+s.id+'">'+s.name+'</option>').join('') : '<option value="">No Supplier</option>';
+  document.getElementById('purchaseList').innerHTML=S.purchases.slice(0,20).map(p=>'<div class="row"><span><b>'+p.product+'</b> x '+p.qty+' • '+p.supplier+' • '+p.status+'<br><small>'+p.date+'</small></span><b>'+p.total+'</b></div>').join('')||'<p>کوئی خریداری نہیں</p>';
+  document.getElementById('custList').innerHTML=S.customers.map((c,i)=>'<div class="row"><span><b>'+c.name+'</b> • '+c.phone+'<br>ادھار: <b style="color:red">'+c.udhaar+' '+S.settings.currency+'</b></span><span><button class="small" onclick="payUdhaar('+i+')">💰 پیسے ملے</button><button class="small" onclick="S.customers.splice('+i+',1);save();renderUser()">🗑</button></span></div>').join('');
+  document.getElementById('returnList').innerHTML=S.returns.slice(0,20).map(r=>'<div class="row"><span><b>'+r.product+'</b> x '+r.qty+' • '+r.receipt+' • '+r.reason+'</span><b>'+r.refund+'</b></div>').join('')||'<p>کوئی واپسی نہیں</p>';
+  document.getElementById('shiftBox').innerHTML=openShift? '<p>🟢 شفٹ کھلی ہے • Opening: '+openShift.openCash+' • Cash In: '+openShift.cashIn+' • Cash Out: '+openShift.cashOut+'</p>' : '<p>🔴 کوئی شفٹ کھلی نہیں</p>';
+  document.getElementById('shiftHistory').innerHTML=S.shifts.slice(0,10).map(s=>'<div class="row"><span><b>'+s.status+'</b> • Open '+s.openCash+' • '+s.openDate+'</span><span>'+(s.status==='Closed'? 'Expected '+s.expected+' • فرق '+s.variance : '')+'</span></div>').join('');
+  document.getElementById('expenseList').innerHTML=S.expenses.slice(0,20).map((e,i)=>'<div class="row"><span><b>'+e.title+'</b> • '+e.cat+' • '+e.date+'</span><b>'+e.amount+'</b></div>').join('')||'<p>کوئی خرچہ نہیں</p>';
+  let sq=(document.getElementById('salesSearch')?.value||'').toLowerCase(); document.getElementById('salesList').innerHTML=S.sales.filter(s=>(s.receipt+s.customer).toLowerCase().includes(sq)).slice(0,50).map(s=>'<div class="row"><span><b>'+s.receipt+'</b> • '+s.items+'<br><small>'+s.date+' • '+s.customer+' • '+s.type+' • '+s.cashier+'</small></span><span><b>'+s.total+'</b><br><button class="small" onclick="printReceipt(S.sales.find(x=>x.id===\''+s.id+'\'));window.print()">🖨️</button><button class="small" onclick="document.getElementById(\'returnReceipt\').value=\''+s.receipt+'\';findReturn()">↩️</button></span></div>').join('')||'<p>ابھی کوئی سیل نہیں</p>';
+  let adj=document.getElementById('adjProduct'); adj.innerHTML=S.stock.map(p=>'<option value="'+p.id+'">'+p.name+' ('+p.qty+')</option>').join('');
+  let low=S.stock.filter(p=>p.qty<=p.reorder); document.getElementById('lowStockBox').innerHTML=low.length? low.map(p=>'<div class="row"><span>'+p.name+'</span><b style="color:red">'+p.qty+' باقی</b></div>').join('') : '<p>سب ٹھیک ہے ✅</p>';
+  let best={}; S.sales.forEach(s=>s.itemsDetail.forEach(it=>{let p=S.stock.find(x=>x.id===it.id); if(p) best[p.name]=(best[p.name]||0)+it.qty})); let bestArr=Object.entries(best).sort((a,b)=>b[1]-a[1]).slice(0,5); document.getElementById('bestBox').innerHTML=bestArr.length? bestArr.map(([n,q])=>'<div class="row"><span>'+n+'</span><b>'+q+' بکے</b></div>').join('') : '<p>ابھی ڈیٹا نہیں</p>';
+  let dash=document.getElementById('dashBox'); let totalExp=S.expenses.reduce((a,e)=>a+e.amount,0); dash.innerHTML='<div class="row"><span>آج کی سیل</span><b>'+tSale+'</b></div><div class="row"><span>آج کا خرچہ</span><b>'+S.expenses.filter(e=>new Date(e.date).toDateString()===new Date().toDateString()).reduce((a,e)=>a+e.amount,0)+'</b></div><div class="row"><span>کل خرچہ</span><b>'+totalExp+'</b></div><div class="row"><span>کل سیل</span><b>'+S.sales.reduce((a,s)=>a+s.total,0)+'</b></div><div class="row"><span>واپسیاں</span><b>'+S.returns.reduce((a,r)=>a+r.refund,0)+'</b></div>';
+  let repSales = reportRange==='today'? today : reportRange==='week'? S.sales.filter(s=> (Date.now()-new Date(s.date).getTime())<7*24*60*60*1000) : reportRange==='month'? S.sales.filter(s=> (Date.now()-new Date(s.date).getTime())<30*24*60*60*1000) : S.sales;
+  let repTotal=repSales.reduce((a,s)=>a+s.total,0); let repDisc=repSales.reduce((a,s)=>a+s.discount,0); let repTax=repSales.reduce((a,s)=>a+s.tax,0); let repRet=S.returns.reduce((a,r)=>a+r.refund,0);
+  document.getElementById('reportBox').innerHTML='<div class="row"><span>رینج</span><b>'+reportRange+'</b></div><div class="row"><span>سیل</span><b>'+repTotal+'</b></div><div class="row"><span>ٹرانزیکشن</span><b>'+repSales.length+'</b></div><div class="row"><span>ڈسکاؤنٹ</span><b>'+repDisc+'</b></div><div class="row"><span>ٹیکس</span><b>'+repTax+'</b></div><div class="row"><span>واپسی</span><b>'+repRet+'</b></div><div class="row"><span>Net سیل</span><b>'+(repTotal-repRet)+'</b></div><div class="row"><span>خرچہ (سب)</span><b>'+totalExp+'</b></div>';
+  document.getElementById('auditList').innerHTML=S.audit.slice(0,50).map(a=>'<div class="row"><span><b>'+a.action+'</b> • '+a.detail+'</span><small>'+a.user+' • '+a.date+'</small></div>').join('')||'<p>کوئی Audit نہیں</p>';
+  document.getElementById('setShop').value=S.settings.shop; document.getElementById('setPhone').value=S.settings.phone; document.getElementById('setAddress').value=S.settings.address; document.getElementById('setTax').value=S.settings.tax; document.getElementById('setFooter').value=S.settings.footer; document.getElementById('setCurrency').value=S.settings.currency; document.getElementById('setAllowNegative').checked=S.settings.allowNegative; document.getElementById('setAllowCredit').checked=S.settings.allowCredit;
+  updateSyncUI();
+};
+  window.renderAdmin=function(){
+  let list=allUsers.length>0?allUsers:S.localUsers; let q=(document.getElementById('adminSearch')?.value||'').toLowerCase(); let filtered=list.filter(u=>(u.shop+u.owner+u.phone+u.city).toLowerCase().includes(q));
+  document.getElementById('adminTotal').innerText=list.length; document.getElementById('adminActive').innerText=list.filter(u=>u.status==='Active').length; document.getElementById('adminBlocked').innerText=list.filter(u=>u.status==='Blocked').length;
+  let rev=list.reduce((a,u)=>a+(u.plan?.includes('15000')?15000:u.plan?.includes('12000')?12000:1500),0); document.getElementById('adminRevenue').innerText=rev.toLocaleString()+' PKR';
+  document.getElementById('adminTable').innerHTML=filtered.map(u=>'<tr><td><b>'+u.shop+'</b><br><small>'+u.owner+' • '+(u.role||'')+'</small></td><td>'+u.phone+'<br><small>'+u.city+'</small></td><td><small>'+u.plan+'</small><br><small>'+(u.date||'')+'</small><br><b>Key: '+u.key+'</b></td><td><span class="pill '+(u.status==='Active'?'pill-green':'pill-red')+'">'+u.status+'</span></td><td><button class="small" onclick="toggleBlock(\''+u.id+'\',\''+u.status+'\')">'+(u.status==='Active'?'🚫 Block':'✅ Unblock')+'</button><button class="small" onclick="window.open(\'https://wa.me/92'+String(u.phone).replace(/[^0-9]/g,'').slice(-10)+'?text=\'+encodeURIComponent(\'السلام علیکم '+u.owner+', آپ کی KF POS Pro کی فیس باقی ہے۔ - خالد فاروق\'))">WhatsApp</button><button class="small" style="color:red" onclick="deleteUser(\''+u.id+'\')">🗑</button></td></tr>').join('')||'<tr><td colspan="5">ابھی کوئی یوزر نہیں</td></tr>';
+};
+window.toggleBlock=async function(id,status){ let ns=status==='Active'?'Blocked':'Active'; try{ if(db&&id) await updateDoc(doc(db,"kf_users",id),{status:ns}); }catch(e){alert(e.message);} };
+window.deleteUser=async function(id){ if(!confirm('Delete کریں؟')) return; try{ if(db&&id) await deleteDoc(doc(db,"kf_users",id)); }catch(e){alert(e.message);} };
+window.exportUsers=function(){ let list=allUsers.length>0?allUsers:S.localUsers; let txt='KF POS Pro - تمام کسٹمرز (Live)\n\n'+list.map((u,i)=>(i+1)+'. '+u.shop+' - '+u.owner+' - '+u.phone+' - '+u.city+' - '+u.plan+' - '+u.status+' - Key: '+u.key).join('\n'); window.open('https://wa.me/?text='+encodeURIComponent(txt)); };
+window.addEventListener('online',()=>{updateSyncUI(); syncNow();}); window.addEventListener('offline',()=>updateSyncUI());
+if(window.currentUser){ if(window.currentUser.isAdmin) showScreen('admin'); else showScreen('user'); }
+updateSyncUI();
+</script>
+</body>
+</html>
